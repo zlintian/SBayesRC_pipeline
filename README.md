@@ -49,18 +49,39 @@ formatqsub=`qsubshcom  "$cmd1" 1 50G  $job_name  2:00:00  " "     `
 
 ## check up
 
+I had problem when meta analyzed file have SNPs with less information than others. Reading the file in R will end in the middle and lose SNPs.
+
 ```{bash, eval = F}
 ## check number of rows
 
-n_QCed=$(wc -l  ${trait}/${gwas_file}.ma  | awk '{print $1}'  )
+n_formatted=$(wc -l  ${trait}/${gwas_file}.ma  | awk '{print $1}'  )
 n_raw=$(wc -l   ${trait}/${gwas_file}  | awk '{print $1}' )
 
-if [ $n_QCed != $n_raw ] 
+if [ $n_formatted != $n_raw ] 
 then 
 	echo "formatted file could be truncated"
 fi
+```
 
-## choose LD matrix based on number of SNPs
+
+## Tidy: optional step, tidy summary data
+
+```{bash, eval = F}
+ma_file=${trait}/${gwas_file}
+
+## "log2file=TRUE" means the messages will be redirected to a log file 
+job_name="tidy_"${trait} # your job name, customize
+tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$formatqsub  " `
+ 
+```
+Best practice: read the log to check issues in your GWAS summary data.  
+
+## choose LD matrix 
+
+We don't want to impute more than 30% SNPs in the LD matrix. If you GWAS summary stat has less than 70% of the SNPs in the 7.3M LD reference, we will switch to the HapMap3 reference. 
+
+```{bash, eval = F}
+n_QCed=$(wc -l  ${trait}/${gwas_file}_tidy.ma  | awk '{print $1}'  )
 
 if [ $n_QCed > 5149563 ]
 then
@@ -70,26 +91,19 @@ else
 fi
 ```
 
+## Impute: optional step if your summary data doesn't cover the SNP panel
 
-## R version of SBayesRC
+```{bash, eval = F}
 
-
-```{bash}
-ma_file=${trait}/${gwas_file}
-
-# Tidy: optional step, tidy summary data
-## "log2file=TRUE" means the messages will be redirected to a log file 
-job_name="tidy_"${trait} # your job name, customize
-tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$formatqsub  " `
-## Best practice: read the log to check issues in your GWAS summary data.  
-
-
-# Impute: optional step if your summary data doesn't cover the SNP panel
 job_name="imputation_"${trait}  # customize
 imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$tidyqsub  "   `
+```
+
 
 
 # SBayesRC: main function for SBayesRC
+
+```{bash, eval = F}
 job_name="sbr_eig_"${trait}
 sbrcsub=`qsubshcom "Rscript -e \"SBayesRC::sbayesrc(mafile='${ma_file}_imp.ma', LDdir='$LD_PATH', outPrefix='${ma_file}_sbrc', annot='$annot', log2file=TRUE) \"" 10 150G $job_name 25:00:00 " -wait=$imputesub " `
 ```
