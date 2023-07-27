@@ -54,6 +54,10 @@ This R script has several extra functions than formatting:
 > 4. If there is not a column of per-SNP-sample-size in your data, you can fill it with a unique number.
 > 5. If your data has two columns for the sample size as Ncase and Ncontrol, the script adds them up to be N. Put them in as "Ncase,Ncontrol" behind --samplesize. 
  
+As an exmple:
+
+![AF plot](GIANT_HEIGHT_YENGO_2022_GWAS_SUMMARY_STATS_EUR_AF_plot.png)
+
 
 
 ## check up
@@ -126,10 +130,6 @@ plotcmd=" Rscript  ${exedir}/effect_size_plot.R  $trait   $gwas_file "
 jobname="effect_plot_"${trait}
 plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
 ```
-As an exmple:
-
-![AF plot](GIANT_HEIGHT_YENGO_2022_GWAS_SUMMARY_STATS_EUR_AF_plot)
-
 
 ## Useful links:
 
