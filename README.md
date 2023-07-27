@@ -131,8 +131,10 @@ plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
 
 GCTB:  
 > https://cnsgenomics.com/software/gctb/#Download
+
 SBayesRC:  
 > https://github.com/zhilizheng/SBayesRC
+
 qsubshcom:  
 > https://github.com/zhilizheng/qsubshcom
 
