@@ -47,6 +47,15 @@ job_name="format_"${trait}
 formatqsub=`qsubshcom  "$cmd1" 1 50G  $job_name  2:00:00  " "     `
 ```
 
+This R script has several extra functions than formatting:
+> 1. Convert odds ratio to effect size if it's named OR.
+> 2. Make a allele frequency comparison plot between data vs LD reference
+> 3. If allele frequency is missing in your data, it fills it with the AF in LD reference.
+> 4. If there is not a column of per-SNP-sample-size in your data, you can fill it with a unique number.
+> 5. If your data has two columns for the sample size as Ncase and Ncontrol, the script adds them up to be N. Put them in as "Ncase,Ncontrol" behind --samplesize. 
+ 
+
+
 ## check up
 
 I had problem when meta analyzed file have SNPs with less information than others. Reading the file in R will end in the middle and lose SNPs.
