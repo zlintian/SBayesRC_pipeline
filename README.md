@@ -74,6 +74,7 @@ job_name="tidy_"${trait} # your job name, customize
 tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$formatqsub  " `
  
 ```
+
 Best practice: read the log to check issues in your GWAS summary data.  
 
 ## choose LD matrix 
@@ -94,14 +95,13 @@ fi
 ## Impute: optional step if your summary data doesn't cover the SNP panel
 
 ```{bash, eval = F}
-
 job_name="imputation_"${trait}  # customize
 imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$tidyqsub  "   `
 ```
 
 
 
-# SBayesRC: main function for SBayesRC
+## SBayesRC: main function for SBayesRC
 
 ```{bash, eval = F}
 job_name="sbr_eig_"${trait}
@@ -112,7 +112,7 @@ sbrcsub=`qsubshcom "Rscript -e \"SBayesRC::sbayesrc(mafile='${ma_file}_imp.ma', 
 
 At last we compare the marginal effect size with the effect size from SBayesRC with a simple plot. 
 
-```{bash}
+```{bash, eval = F}
 plotcmd=" Rscript  ${exedir}/effect_size_plot.R  $trait   $gwas_file "
 jobname="effect_plot_"${trait}
 plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
