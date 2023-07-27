@@ -126,6 +126,10 @@ plotcmd=" Rscript  ${exedir}/effect_size_plot.R  $trait   $gwas_file "
 jobname="effect_plot_"${trait}
 plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
 ```
+As an exmple:
+
+![]()
+
 
 ## Useful links:
 
