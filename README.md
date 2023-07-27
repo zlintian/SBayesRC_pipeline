@@ -25,7 +25,9 @@ gwas_file=PGC_UKB_depression_genome-wide.txt
 ## format to cojo
 
 for example, if the raw gwas file has a header like this:
-MarkerName A1 A2 Freq LogOR StdErrLogOR P
+
+> MarkerName A1 A2 Freq LogOR StdErrLogOR P
+
 you can put each element of the header name into the script per flag:
 
 ```{bash, eval = F}
