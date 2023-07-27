@@ -128,7 +128,7 @@ plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
 ```
 As an exmple:
 
-![]()
+![AF plot](GIANT_HEIGHT_YENGO_2022_GWAS_SUMMARY_STATS_EUR_AF_plot)
 
 
 ## Useful links:
