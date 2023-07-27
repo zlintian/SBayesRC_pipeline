@@ -131,6 +131,10 @@ jobname="effect_plot_"${trait}
 plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
 ```
 
+As an example:
+
+![](Height_03_compare_marginal_effect_vs_SBayesRC_hm3.png)
+
 ## Useful links:
 
 GCTB:  
