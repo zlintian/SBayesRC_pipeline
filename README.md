@@ -133,7 +133,8 @@ plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
 
 As an example:
 
-![](Height_03_compare_marginal_effect_vs_SBayesRC_hm3.png)
+<img src="Height_03_compare_marginal_effect_vs_SBayesRC_hm3.png" width="50%" height="50%" />
+
 
 ## Useful links:
 
