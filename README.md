@@ -56,7 +56,7 @@ This R script has several extra functions than formatting:
  
 As an exmple:
 
-<img src="GIANT_HEIGHT_YENGO_2022_GWAS_SUMMARY_STATS_EUR_AF_plot.png" height="300" width="300" />
+<img src="GIANT_HEIGHT_YENGO_2022_GWAS_SUMMARY_STATS_EUR_AF_plot.png" width="50%" height="50%" />
 
 
 
