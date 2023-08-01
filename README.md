@@ -72,7 +72,7 @@ n_raw=$(wc -l   ${trait}/${gwas_file}  | awk '{print $1}' )
 
 if [ $n_formatted != $n_raw ] 
 then 
-	echo "formatted file could be truncated"
+	echo "formatted file could be truncated, or losing SNPs that don't have allele frequency. Check out."
 fi
 ```
 
