@@ -65,15 +65,12 @@ As an exmple:
 I had problem when meta analyzed file have SNPs with less information than others. Reading the file in R will end in the middle and lose SNPs.
 
 ```{bash, eval = F}
-## check number of rows
+## check row numbers
 
-n_formatted=$(wc -l  ${trait}/${gwas_file}.ma  | awk '{print $1}'  )
-n_raw=$(wc -l   ${trait}/${gwas_file}  | awk '{print $1}' )
+cmd2="if [ $(wc -l  ${trait}/${gwas_file}.ma  | awk '{print $1}'  )  -ne   $(wc -l   ${trait}/${gwas_file}  | awk '{print $1}' ) ]； then   echo "formatted file could be truncated or filtered with allele frequency. Double check!"  ; fi  "
+job_name="check1_"${trait}
+checkqsub=`qsubshcom "$cmd2"   1 1G  $job_name  1:00:00  " -wait=$formatqsub " ` 
 
-if [ $n_formatted -ne $n_raw ] 
-then 
-	echo "formatted file could be truncated, or losing SNPs that don't have allele frequency. Check out."
-fi
 ```
 
 
@@ -84,7 +81,7 @@ ma_file=${trait}/${gwas_file}
 
 ## "log2file=TRUE" means the messages will be redirected to a log file 
 job_name="tidy_"${trait} # your job name, customize
-tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH1', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$formatqsub  " `
+tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH1', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$checkqsub  " `
  
 ```
 
@@ -95,21 +92,16 @@ Best practice: read the log to check issues in your GWAS summary data.
 We don't want to impute more than 30% SNPs in the LD matrix. If you GWAS summary stat has less than 70% of the SNPs in the 7.3M LD reference, we will switch to the HapMap3 reference. 
 
 ```{bash, eval = F}
-n_QCed=$(wc -l  ${trait}/${gwas_file}_tidy.ma  | awk '{print $1}'  )
-
-if [ $n_QCed  -gt   5149563 ]
-then
-        LD_PATH=$LD_PATH1
-else
-        LD_PATH=$LD_PATH2
-fi
+## choose LD matrix based on number of SNPs
+job_name="ldpick_"${trait}
+ldpick=`qsubshcom "if [ $(wc -l  ${trait}/${gwas_file}_tidy.ma  | awk '{print $1}'  ) -gt  5149563 ]; then      echo "yes"; else         echo "no" ; fi"   1 1G  $job_name  1:00:00  " -wait=$tidyqsub "  `
 ```
 
 ## Impute: optional step if your summary data doesn't cover the SNP panel
 
 ```{bash, eval = F}
 job_name="imputation_"${trait}  # customize
-imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$tidyqsub  "   `
+imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$ldpick  "   `
 ```
 
 
