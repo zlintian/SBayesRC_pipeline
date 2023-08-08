@@ -1,5 +1,5 @@
 # SBayesRC_pipeline
-This is a pipeline how I use SBayesRC method to generate predictor
+This is a pipeline how I use SBayesRC method to generate predictor. The 3 key steps of QC, imputation and SBayesRC are adopted derectly from [Zhili's method](https://github.com/zhilizheng/SBayesRC).
 
 ## define path and input/out 
 
