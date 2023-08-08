@@ -45,44 +45,28 @@ job_name="format_"${trait}
 formatqsub=`qsubshcom  "$cmd1" 1 50G  $job_name  2:00:00  " "     `
 
 
-
 ## check row numbers
-
-n_formatted=$(wc -l  ${trait}/${gwas_file}.ma  | awk '{print $1}'  )
-n_raw=$(wc -l   ${trait}/${gwas_file}  | awk '{print $1}' )
-
-
-if [ $n_formatted != $n_raw ] 
-then 
-	echo "formatted file could be truncated"
-fi
+cmd2="if [ $(wc -l  ${trait}/${gwas_file}.ma  | awk '{print $1}'  )  -ne   $(wc -l   ${trait}/${gwas_file}  | awk '{print $1}' ) ]； then   echo "formatted file could be truncated or filtered with allele frequency. Double check!"  ; fi  "
+job_name="check1_"${trait}
+checkqsub=`qsubshcom "$cmd2"   1 1G  $job_name  1:00:00  " -wait=$formatqsub " ` 
 
 
 ## Tidy: optional step, tidy summary data
 ## "log2file=TRUE" means the messages will be redirected to a log file 
 ma_file=${trait}/${gwas_file}
 job_name="tidy_"${trait} # your job name, customize
-tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$formatqsub  " `
+tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH1', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$checkqsub  " `
 ## Best practice: read the log to check issues in your GWAS summary data.  
 
 
-
 ## choose LD matrix based on number of SNPs
-
-n_QCed=$(wc -l  ${trait}/${gwas_file}_tidy.ma  | awk '{print $1}'  )
-
-
-if [ $n_QCed > 5149563 ]
-then
-        LD_PATH=$LD_PATH1
-else
-        LD_PATH=$LD_PATH2
-fi
+job_name="ldpick_"${trait}
+ldpick=`qsubshcom "if [ $(wc -l  ${trait}/${gwas_file}_tidy.ma  | awk '{print $1}'  ) -gt  5149563 ]; then      echo "yes"; else         echo "no" ; fi"   1 1G  $job_name  1:00:00  " -wait=$tidyqsub "  `
 
 
 ## Impute: optional step if your summary data doesn't cover the SNP panel
 job_name="imputation_"${trait}  # customize
-imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$tidyqsub  "   `
+imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$ldpick  "   `
 
 
 ## SBayesRC: main function for SBayesRC
@@ -94,8 +78,5 @@ sbrcsub=`qsubshcom "Rscript -e \"SBayesRC::sbayesrc(mafile='${ma_file}_imp.ma', 
 plotcmd=" Rscript  ${exedir}/effect_size_plot.R  $trait   $gwas_file "
 jobname="effect_plot_"${trait}
 plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
-
-
-
 
 
