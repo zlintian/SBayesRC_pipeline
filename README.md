@@ -70,7 +70,7 @@ I had problem when meta analyzed file have SNPs with less information than other
 n_formatted=$(wc -l  ${trait}/${gwas_file}.ma  | awk '{print $1}'  )
 n_raw=$(wc -l   ${trait}/${gwas_file}  | awk '{print $1}' )
 
-if [ $n_formatted != $n_raw ] 
+if [ $n_formatted -ne $n_raw ] 
 then 
 	echo "formatted file could be truncated, or losing SNPs that don't have allele frequency. Check out."
 fi
@@ -97,7 +97,7 @@ We don't want to impute more than 30% SNPs in the LD matrix. If you GWAS summary
 ```{bash, eval = F}
 n_QCed=$(wc -l  ${trait}/${gwas_file}_tidy.ma  | awk '{print $1}'  )
 
-if [ $n_QCed > 5149563 ]
+if [ $n_QCed  -gt   5149563 ]
 then
         LD_PATH=$LD_PATH1
 else
