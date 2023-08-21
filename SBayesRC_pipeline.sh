@@ -38,6 +38,12 @@ LD_PATH1="/scratch/project_mnt/S0007/uqzzhen4/project/UKB/LD/ukb20k_7M_4cM/"
 LD_PATH2="/scratch/project_mnt/S0007/uqzzhen4/project/UKB/LD/ukb20k_hm3_4cM/"
 annot="/scratch/project_mnt/S0007/uqzzhen4/project/UKB/annot/annot_baseline2.2.txt" # annottion file
 
+
+## choose the LD reference based on number of SNPs in GWAS data. 
+echo " there are " $(wc -l  ${trait}/${gwas_file} | awk '{print $1}' ) "SNPs in the original GWAS data"
+if [ $(wc -l  ${trait}/${gwas_file}  | awk '{print $1}'  ) -gt  5149563 ]; then   LD_PATH=$LD_PATH1 ; else  LD_PATH=$LD_PATH2 ; fi
+
+
 #####################################################################################
 ## Below this line does not need modification most of time. 
 
@@ -62,26 +68,15 @@ formatqsub=`qsubshcom  "$cmd1" 1 50G  $job_name  2:00:00  " "     `
 
 
 
-## check row numbers
-cmd2="if [ $(wc -l  ${ma_file}.ma  | awk '{print $1}'  )  -ne   $(wc -l   ${ma_file}  | awk '{print $1}' ) ]； then   echo \"formatted file could be truncated or filtered with allele frequency. Double check!\"  ; fi  "
-job_name="check1_"${trait}
-checkqsub=`qsubshcom "$cmd2"   1 1G  $job_name  1:00:00  " -wait=$formatqsub " ` 
-
-
 ## Tidy: optional step, tidy summary data
 job_name="tidy_"${trait} 
-tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH1', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$checkqsub  " `
+tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$formatqsub  " `
 ## Best practice: read the log to check issues in your GWAS summary data.  
-
-
-## choose LD matrix based on number of SNPs
-job_name="ldpick_"${trait}
-ldpick=`qsubshcom "if [ $(wc -l  ${trait}/${gwas_file}_tidy.ma  | awk '{print $1}'  ) -gt  5149563 ]; then      echo "yes"; else         echo "no" ; fi"   1 1G  $job_name  1:00:00  " -wait=$tidyqsub "  `
 
 
 ## Impute: optional step if your summary data doesn't cover the SNP panel
 job_name="imputation_"${trait}  
-imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$ldpick  "   `
+imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$tidyqsub  "   `
 
 
 ## SBayesRC: main function for SBayesRC
