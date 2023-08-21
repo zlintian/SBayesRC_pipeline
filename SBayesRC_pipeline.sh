@@ -43,14 +43,14 @@ annot="/scratch/project_mnt/S0007/uqzzhen4/project/UKB/annot/annot_baseline2.2.t
 echo " there are " $(wc -l  ${trait}/${gwas_file} | awk '{print $1}' ) "SNPs in the original GWAS data"
 if [ $(wc -l  ${trait}/${gwas_file}  | awk '{print $1}'  ) -gt  5149563 ]; then   LD_PATH=$LD_PATH1 ; else  LD_PATH=$LD_PATH2 ; fi
 
+## GWAS data is placed in a folder named with trait and numbering. 
+ma_file=${trait}/${gwas_file}
+
 
 #####################################################################################
 ## Below this line does not need modification most of time. 
 
-ma_file=${trait}/${gwas_file}
-
 ## format to cojo
-
 cmd1="Rscript  ${exedir}/cojo_format_v3.R  \
   --file  ${ma_file}  \
   --out  ${ma_file}.ma   \
