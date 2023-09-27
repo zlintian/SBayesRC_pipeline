@@ -55,7 +55,10 @@ This R script has several extra functions than formatting:
 > 2. Make a allele frequency comparison plot between data vs LD reference
 > 3. If allele frequency is missing in your data, it fills it with the AF in LD reference.
 > 4. If there is not a column of per-SNP-sample-size in your data, you can fill it with a unique number.
-> 5. If your data has two columns for the sample size as Ncase and Ncontrol, the script adds them up to be N. Put them in as "Ncase,Ncontrol" behind --samplesize. 
+> 5. If your data has two columns for the sample size as Ncase and Ncontrol, the script adds them up to be N. Put them in as "Ncase,Ncontrol" behind --samplesize.
+> 6. If the data does not have sample size but "NCHROBS", it will be divided by 2 to be sample size.
+> 7. If SE is missing, we will estimate it from BETA and P.
+
  
 As an exmple:
 
