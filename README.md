@@ -34,7 +34,7 @@ for example, if the raw gwas file has a header like this:
 you can put each element of the header name into the script per flag:
 
 ```{bash, eval = F}
-cmd1="Rscript  ${exedir}/cojo_format_v3.R  \
+cmd1="Rscript  ${exedir}/cojo_format_v4.R  \
   --file  ${trait}/${gwas_file}  \
   --out  ${trait}/${gwas_file}.ma   \
   --SNP  MarkerName  \
