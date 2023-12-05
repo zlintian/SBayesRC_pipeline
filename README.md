@@ -34,7 +34,7 @@ for example, if the raw gwas file has a header like this:
 you can put each element of the header name into the script per flag:
 
 ```{bash, eval = F}
-cmd1="Rscript  ${exedir}/cojo_format_v4.R  \
+cmd1="Rscript  ${exedir}/cojo_format_v6.R  \
   --file  ${trait}/${gwas_file}  \
   --out  ${trait}/${gwas_file}.ma   \
   --SNP  MarkerName  \
@@ -58,6 +58,8 @@ This R script has several extra functions than formatting:
 > 5. If your data has two columns for the sample size as Ncase and Ncontrol, the script adds them up to be N. Put them in as "Ncase,Ncontrol" behind --samplesize.
 > 6. If the data does not have sample size but "NCHROBS", it will be divided by 2 to be sample size.
 > 7. If SE is missing, we will estimate it from BETA and P.
+> 8. If SNP ID is in chr:pos or chr:pos:A1:A2 format, we will replace it by denoting the chr column and bp column, and the SNP column name as "missing".
+> 9. If sample size and allele frequency are give separately for cases and controls, we can input them together and separate with ",". 
 
  
 As an exmple:
@@ -66,15 +68,6 @@ As an exmple:
 
 
 
-## check up
-
-I had problem when meta analyzed file have SNPs with less information than others. Reading the file in R will end in the middle and lose SNPs.
-
-```{bash, eval = F}
-## check row numbers
-if [ $(wc -l  ${trait}/${gwas_file}.ma  | awk '{print $1}'  )  -ne   $(wc -l   ${trait}/${gwas_file}  | awk '{print $1}' ) ]； then   echo "formatted file could be truncated or filtered with allele frequency. Double check!"  ; fi 
-
-```
 
 
 ## Tidy: optional step, tidy summary data
@@ -121,7 +114,7 @@ sbrcsub=`qsubshcom "Rscript -e \"SBayesRC::sbayesrc(mafile='${ma_file}_imp.ma', 
 At last we compare the marginal effect size with the effect size from SBayesRC with a simple plot. 
 
 ```{bash, eval = F}
-plotcmd=" Rscript  ${exedir}/effect_size_plot.R  $trait   $gwas_file "
+plotcmd="Rscript  ${exedir}/effect_size_plot_updated.R    $trait   ${gwas_file}.imp.ma  ${gwas_file}.imp_sbrc.txt  "
 jobname="effect_plot_"${trait}
 plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
 ```
