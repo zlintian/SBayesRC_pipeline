@@ -59,7 +59,7 @@ This R script has several extra functions than formatting:
 > 6. If the data does not have sample size but "NCHROBS", it will be divided by 2 to be sample size.
 > 7. If SE is missing, we will estimate it from BETA and P.
 > 8. If SNP ID is in chr:pos or chr:pos:A1:A2 format, we will replace it by denoting the chr column and bp column, and the SNP column name as "missing".
-> 9. If sample size and allele frequency are give separately for cases and controls, we can input them together and separate with ",". 
+> 9. If sample size and allele frequency are give separately for cases and controls, we can input them together and separate with ",". (make sure the AF of case/control are put in the same order as their sample size)
 
  
 As an exmple:
