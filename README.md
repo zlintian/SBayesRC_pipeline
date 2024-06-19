@@ -1,7 +1,6 @@
-# SBayesRC_pipeline
-This is a pipeline how I use SBayesRC method to generate predictor. The 3 key steps of QC, imputation and SBayesRC are adopted derectly from [Zhili's method](https://github.com/zhilizheng/SBayesRC).
+This is a pipeline how I use SBayesRC method to generate predictors. The 3 key steps of QC, imputation and SBayesRC are adopted derectly from [Zhili's method](https://github.com/zhilizheng/SBayesRC).
 
-## define path and input/out 
+
 
 ```{bash, eval = F}
 cd $workingpath
@@ -25,7 +24,7 @@ ma_file=${trait}/${gwas_file}
 ```
 
 
-## format to cojo
+# format a GWAS summary level data to cojo format
 
 for example, if the raw gwas file has a header like this:
 
@@ -67,7 +66,7 @@ As an exmple:
 <img src="GIANT_HEIGHT_YENGO_2022_GWAS_SUMMARY_STATS_EUR_AF_plot.png" width="50%" height="50%" />
 
 
-
+# R version
 
 
 ## Tidy: optional step, tidy summary data
@@ -123,11 +122,23 @@ As an example:
 
 <img src="Anorexia_01_pgcAN2.2019-07.modified.vcf.tsv_sbrc.txt_compare_marginal_effect_vs_SBayesRC_20231103_10_18.png" width="50%" height="50%" />
 
+# GCTB version
 
-## Useful links:
+ldm=/QRISdata/Q3895/ldm/eigen/ukbEUR_Imputed/
+
+## QC and Impute: GCTB does the two things in one step.
+job_name="imputation_"${trait}  
+imputesub=`qsubshcom "gctb --ldm-eigen $ldm --gwas-summary ${ma_file}.ma --impute-summary --out ${ma_file}_imp.ma --thread 4"  4 150G $job_name 12:00:00 " -wait=$impqsub  "   `
+
+## SBayesRC
+job_name="sbrc_gctb_"${trait}
+sbrcsub=`qsubshcom "gctb  --sbayes RC  --ldm-eigen  ${ldm} --gwas-summary ${ma_file}_imp.ma.imputed.ma  --annot $annot --out  ${ma_file}_sbrc  --thread 4"  4 150G $job_name 72:00:00 " -wait=$imputesub  "   `
+
+
+# Useful links:
 
 GCTB:  
-> https://cnsgenomics.com/software/gctb/#Download  
+> https://cnsgenomics.com/software/gctb/#SBayesRCTutorial
 
 SBayesRC:  
 > https://github.com/zhilizheng/SBayesRC  
