@@ -33,7 +33,7 @@ for example, if the raw gwas file has a header like this:
 you can put each element of the header name into the script per flag:
 
 ```{bash, eval = F}
-cmd1="Rscript  ${exedir}/cojo_format_v6.R  \
+cmd1="Rscript  ${exedir}/cojo_format_v7.R  \
   --file  ${trait}/${gwas_file}  \
   --out  ${trait}/${gwas_file}.ma   \
   --SNP  MarkerName  \
@@ -124,16 +124,21 @@ As an example:
 
 # GCTB version
 
+```{bash, eval = F}
 ldm=/QRISdata/Q3895/ldm/eigen/ukbEUR_Imputed/
-
+```
 ## QC and Impute: GCTB does the two things in one step.
+
+```{bash, eval = F}
 job_name="imputation_"${trait}  
 imputesub=`qsubshcom "gctb --ldm-eigen $ldm --gwas-summary ${ma_file}.ma --impute-summary --out ${ma_file}_imp.ma --thread 4"  4 150G $job_name 12:00:00 " -wait=$impqsub  "   `
+```
 
 ## SBayesRC
+```{bash, eval = F}
 job_name="sbrc_gctb_"${trait}
 sbrcsub=`qsubshcom "gctb  --sbayes RC  --ldm-eigen  ${ldm} --gwas-summary ${ma_file}_imp.ma.imputed.ma  --annot $annot --out  ${ma_file}_sbrc  --thread 4"  4 150G $job_name 72:00:00 " -wait=$imputesub  "   `
-
+```
 
 # Useful links:
 
