@@ -1,4 +1,5 @@
-This is a pipeline how I format any GWAS summary-level data into cojo format, and use SBayesRC method to generate predictors. 
+This is a pipeline how I format any GWAS summary-level data into cojo format, and use SBayesRC method to generate predictors. The method is implemented in GCTB. 
+
 We also included example code to run SBayesR, SBayesS, COJO and clumping on this page. 
 
 
@@ -38,8 +39,9 @@ echo " there are " $(wc -l  ${trait}/${gwas_file} | awk '{print $1}' ) "SNPs in 
 ```
 
 
-# format a GWAS summary level data to cojo format
-
+# COJO format
+GWAS summary level data has various formats. 
+We will need to format it to cojo format to use it as a proper input for GCTB. 
 for example, if the raw gwas file has a header like this:
 
 > MarkerName A1 A2 Freq LogOR StdErrLogOR P
@@ -80,18 +82,16 @@ This is an exmple of comparison of allele frequency in gwas summary data vs. ref
 
 <img src="GIANT_HEIGHT_YENGO_2022_GWAS_SUMMARY_STATS_EUR_AF_plot.png" width="50%" height="50%" />
 
-# SBayesRC
+# QC and Impute
 
-The method is implemented into GCTB. 
-
-## QC and Impute: GCTB does the two things in one step.
+GCTB does the two things in one step.
 
 ```{bash, eval = F}
 job_name="imputation_"${trait}  
 imputesub=`qsubshcom "gctb --ldm-eigen $ldm --gwas-summary ${ma_file}.ma --impute-summary --out ${ma_file}_imp.ma --thread 4"  4 150G $job_name 12:00:00 " -wait=$impqsub  "   `
 ```
 
-## SBayesRC
+# SBayesRC
 
 ```{bash, eval = F}
 job_name="sbrc_"${trait}  
@@ -106,7 +106,7 @@ sbrc_gctb_sub=`qsubshcom "./gctb_2.5.2_Linux/gctb   \
 
 ```
 
-## plot effect size vs. marginal effect size
+# plot SBayesRC effect size vs. marginal effect size
 
 At last we compare the marginal effect size with the effect size from SBayesRC with a simple plot. 
 
