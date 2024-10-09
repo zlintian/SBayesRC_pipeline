@@ -1,6 +1,6 @@
-This is a pipeline how I format any GWAS summary-level data into cojo format, and use SBayesRC method to generate predictors. The method is implemented in GCTB. 
-
+This is a pipeline how I format any GWAS summary-level data into cojo format, and use SBayesRC method to generate predictors. The method is implemented in [GCTB](https://cnsgenomics.com/software/gctb/#SBayesRCTutorial). 
 We also included example code to run SBayesR, SBayesS, COJO and clumping on this page. 
+They are put in a pipeline with the tool [qsubshcom](https://github.com/zhilizheng/qsubshcom).
 
 
 # Preparation
