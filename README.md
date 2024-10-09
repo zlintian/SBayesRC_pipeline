@@ -1,4 +1,8 @@
-This is a pipeline how I format any GWAS summary-level data into cojo format, and use SBayesRC method to generate predictors. Both the scripts to use the [R version SBayesRC](https://github.com/zhilizheng/SBayesRC) and [GCTB version SBayesRC](https://cnsgenomics.com/software/gctb/#SBayesRCTutorial) are included. 
+This is a pipeline how I format any GWAS summary-level data into cojo format, and use SBayesRC method to generate predictors. 
+We also included example code to run SBayesR, SBayesS, COJO and clumping on this page. 
+
+
+# Preparation
 
 Resource data is available for local users with the following path setting, and public for [downloading](https://cnsgenomics.com/software/gctb/#Download) too. 
 
@@ -8,15 +12,29 @@ cd $workingpath
 ## this is where you placed file cojo_format_v7.R
 exedir="./"
 
-## this is the path to LD files and annotation file. 
-LD_PATH1="/scratch/project_mnt/S0007/uqzzhen4/project/UKB/LD/ukb20k_7M_4cM/"
-LD_PATH2="/scratch/project_mnt/S0007/uqzzhen4/project/UKB/LD/ukb20k_hm3_4cM/"
-annot="/scratch/project_mnt/S0007/uqzzhen4/project/UKB/annot/annot_baseline2.2.txt" # annottion file
+## this is where you placed LD files and annotation file. They are available for downloading from GCTB website:
+## https://cnsgenomics.com/software/gctb/#Download
+annot="/QRISdata/Q6913/Pipeline/annot_baseline2.2.txt" # annottion file
+ldm1=/QRISdata/Q3895/ldm/eigen/ukbEUR_Imputed/
+ldm2=/QRISdata/Q3895/ldm/eigen/ukbEUR_HM3/
 
-## you can put your GWAS file into a folder and name it with the trait
+## choose the LD reference based on number of SNPs in GWAS data. 
+if [ $(wc -l  ${trait}/${gwas_file}  | awk '{print $1}'  ) -gt  5149563 ]; then   ldm=$ldm1 ; else  ldm=$ldm2; fi
+
+```
+
+For a neat organization, you can put your GWAS file into a folder and name it with the trait. All the outputs of following analysis will be put into the same folder. 
+Several sub-folders will be set for different analysis. 
+
+```{bash, eval = F}
 trait=MDD_01
 gwas_file=PGC_UKB_depression_genome-wide.txt
 ma_file=${trait}/${gwas_file}
+
+mkdir ${trait}/COJO ${trait}/COJO_imp ${trait}/CplusT ${trait}/SBayesR ${trait}/SBayesS  ${trait}/SBayesRC
+mkdir ${trait}/SBayesRC/GCTB_v2.5.2 
+
+echo " there are " $(wc -l  ${trait}/${gwas_file} | awk '{print $1}' ) "SNPs in the original GWAS data"
 ```
 
 
@@ -58,75 +76,14 @@ This R script has several extra functions than formatting:
 > 10. If SE is missing, we will estimate it from BETA and P.
 > 11. If beta is missing but z is provided, we will calculate effect size with z score, allele frequency and sample size. 
 
- 
 This is an exmple of comparison of allele frequency in gwas summary data vs. reference data:
 
 <img src="GIANT_HEIGHT_YENGO_2022_GWAS_SUMMARY_STATS_EUR_AF_plot.png" width="50%" height="50%" />
 
+# SBayesRC
 
-# R version
+The method is implemented into GCTB. 
 
-The 3 key steps of QC, imputation and SBayesRC are adopted derectly from [Zhili's method](https://github.com/zhilizheng/SBayesRC).
-
-## Tidy 
-
-optional step, tidy summary data
-
-```{bash, eval = F}
-## "log2file=TRUE" means the messages will be redirected to a log file 
-job_name="tidy_"${trait} # your job name, customize
-tidyqsub=`qsubshcom "Rscript -e \"SBayesRC::tidy(mafile='${ma_file}.ma', LDdir='$LD_PATH1', output='${ma_file}_tidy.ma', log2file=TRUE) \"" 1 50G $job_name 10:00:00 "  -wait=$formatqsub  " `
-```
-
-Best practice: read the log to check issues in your GWAS summary data.  
-
-## choose LD matrix 
-
-We don't want to impute more than 30% SNPs in the LD matrix. If you GWAS summary stat has less than 70% of the SNPs in the 7.3M LD reference, we will switch to the HapMap3 reference. 
-
-```{bash, eval = F}
-## choose LD matrix based on number of SNPs
-if [ $(wc -l  ${trait}/${gwas_file}  | awk '{print $1}'  ) -gt  5149563 ]; then   LD_PATH=$LD_PATH1 ; else  LD_PATH=$LD_PATH2 ; fi
-```
-For convinience, we moved this step into the beginning by checking rows in original data in the bash pipeline file. 
-
-## Impute 
-
-optional step if your summary data doesn't cover the SNP panel
-
-```{bash, eval = F}
-job_name="imputation_"${trait}  # customize
-imputesub=`qsubshcom "Rscript -e \"SBayesRC::impute(mafile='${ma_file}_tidy.ma', LDdir='$LD_PATH', output='${ma_file}_imp.ma', log2file=TRUE) \"" 4 150G $job_name 12:00:00 " -wait=$tidyqsub  "   `
-```
-
-## SBayesRC: main function for SBayesRC
-
-```{bash, eval = F}
-job_name="sbr_eig_"${trait}
-sbrcsub=`qsubshcom "Rscript -e \"SBayesRC::sbayesrc(mafile='${ma_file}_imp.ma', LDdir='$LD_PATH', outPrefix='${ma_file}_sbrc', annot='$annot', log2file=TRUE) \"" 10 150G $job_name 25:00:00 " -wait=$imputesub " `
-```
-
-## plot SBayesRC effect size
-
-At last we compare the marginal effect size with the effect size from SBayesRC with a simple plot. 
-
-```{bash, eval = F}
-plotcmd="Rscript  ${exedir}/effect_size_plot_updated.R    $trait   ${gwas_file}.imp.ma  ${gwas_file}.imp_sbrc.txt  "
-jobname="effect_plot_"${trait}
-plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrcsub  " `
-```
-
-As an example:
-
-<img src="Anorexia_01_pgcAN2.2019-07.modified.vcf.tsv_sbrc.txt_compare_marginal_effect_vs_SBayesRC_20231103_10_18.png" width="50%" height="50%" />
-
-# GCTB version
-
-The same method is implemented into GCTB. Although the output files appear in different format, and the content of output are different, the core computation is using the same SBayesRC method in GCTB version and R version. 
-
-```{bash, eval = F}
-ldm=/QRISdata/Q3895/ldm/eigen/ukbEUR_Imputed/
-```
 ## QC and Impute: GCTB does the two things in one step.
 
 ```{bash, eval = F}
@@ -135,22 +92,106 @@ imputesub=`qsubshcom "gctb --ldm-eigen $ldm --gwas-summary ${ma_file}.ma --imput
 ```
 
 ## SBayesRC
+
 ```{bash, eval = F}
-job_name="sbrc_gctb_"${trait}
-sbrcsub=`qsubshcom "gctb  --sbayes RC  --ldm-eigen  ${ldm} --gwas-summary ${ma_file}_imp.ma.imputed.ma  --annot $annot --out  ${ma_file}_sbrc  --thread 4"  4 150G $job_name 72:00:00 " -wait=$imputesub  "   `
+job_name="sbrc_"${trait}  
+
+sbrc_gctb_sub=`qsubshcom "./gctb_2.5.2_Linux/gctb   \
+--sbayes RC  \
+--ldm-eigen   ${ldm}   \
+--gwas-summary   ${ma_file}_imp.ma.imputed.ma   \
+--annot  $annot  \
+--out  ${trait}/SBayesRC/GCTB_v2.5.2/${gwas_file}_imp.ma.imputed_sbrc_gctb   \
+--thread 10 "  10 150G $job_name 24:00:00 " -wait=$gctbimputesub"   `
+
 ```
+
+## plot effect size vs. marginal effect size
+
+At last we compare the marginal effect size with the effect size from SBayesRC with a simple plot. 
+
+```{bash, eval = F}
+plotcmd=" Rscript  ${exedir}/effect_size_plot_for_GCTB_output.R    $trait   ${gwas_file}_imp.ma.imputed.ma    ${trait}/SBayesRC/GCTB_v2.5.2/${gwas_file}_imp.ma.imputed_sbrc_gctb   "
+jobname="effect_plot_"${trait}
+plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrc_gctb_sub  " `
+```
+
+As an example:
+
+<img src="Anorexia_01_pgcAN2.2019-07.modified.vcf.tsv_sbrc.txt_compare_marginal_effect_vs_SBayesRC_20231103_10_18.png" width="50%" height="50%" />
+
+# Clumping
+
+Clumping plus threshold method could be used as a baseline model to compare the prediction accuracy.
+
+```{bash, eval = F}
+snps2exclude=2_duplicated_SNPs_to_exclude.txt          
+
+clmp_sub=`qsubshcom "plink --bfile UKB_20k/PLINK/ukbEURu_imp_chr{TASK_ID}_v3_impQC_20k \
+  --exclude $snps2exclude \
+  --clump ${trait}/${gwas_file}.ma \
+  --clump-p1 0.05  \
+  --clump-p2 0.05  \
+  --clump-r2 0.1 \
+  --clump-kb 500 \
+  --clump-field "p" \
+  --out ${trait}/CplusT/${gwas_file}_chr{TASK_ID}_clumped   "  10 150G "clumping" 24:00:00 "  -wait=$formatqsub  -array=1-22 "   `
+                
+```
+
+# COJO
+We can run COJO to see how many significant and independent SNP signal were in the data. 
+
+```{bash, eval = F}
+cojo_sub=`qsubshcom "gcta-1.94.1  \
+--bfile   UKB_20k/PLINK/ukbEURu_imp_chr{TASK_ID}_v3_impQC_20k \
+--chr   {TASK_ID} \
+--cojo-file   ${trait}/${gwas_file}.ma  \
+--cojo-slct  \
+--out  ${trait}/COJO/${trait}_chr{TASK_ID}_cojo  "  10 150G "COJO"  24:00:00 "  -wait=$formatqsub  -array=1-22 "   `
+```
+
+# SBayesR
+
+
+```{bash, eval =F}
+sbr_gctb_sub=`qsubshcom "gctb  --sbayes R  \
+--ldm-eigen  ${ldm} \
+--gwas-summary  ${trait}/${gwas_file}_imp.ma.imputed.ma  \
+--chain-length 5000 --burn-in 2000   --no-mcmc-bin   \
+--out  ${trait}/SBayesR/${trait}_SBayesR_eigen  --thread 10 "  10 150G  "SBayesR" 24:00:00 " -wait=$gctbimputesub"   `
+```
+
+# SBayesS
+
+```{bash, eval =F}
+sbs_gctb_sub=`qsubshcom "gctb  --sbayes S  \
+--ldm-eigen  ${ldm} \
+--gwas-summary ${trait}/${gwas_file}_imp.ma.imputed.ma  \
+--chain-length 5000 --burn-in 2000 --num-chains 3  --no-mcmc-bin   \
+--out  ${trait}/SBayesS/${trait}_SBayesS_eigen --thread 10 "  10 150G "SBayesS" 24:00:00 " -wait=$gctbimputesub"   `
+
+```
+
 
 # Useful links:
 
 GCTB:  
 > https://cnsgenomics.com/software/gctb/#SBayesRCTutorial
 
-SBayesRC:  
+R version SBayesRC:  
+The same SBayesRC methods is also available in an R version, which is well explained at Zhili's Github.
+Although the output files appear in different format as the GCTB version, and the content of output are different, the core computation is the same. 
+
 > https://github.com/zhilizheng/SBayesRC  
 
 qsubshcom:  
-> https://github.com/zhilizheng/qsubshcom  
+> https://github.com/zhilizheng/qsubshcom
 
+COJO:
+> https://yanglab.westlake.edu.cn/software/gcta/#COJO
 
+Clump:
+> https://zzz.bwh.harvard.edu/plink/clump.shtml
 
 
