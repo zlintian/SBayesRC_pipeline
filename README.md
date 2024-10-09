@@ -120,6 +120,23 @@ As an example:
 
 <img src="Anorexia_01_pgcAN2.2019-07.modified.vcf.tsv_sbrc.txt_compare_marginal_effect_vs_SBayesRC_20231103_10_18.png" width="50%" height="50%" />
 
+
+# Genetic Variance
+
+```{bash, eval = F}
+Rscript  quick_Vg_report_from_snpRes_file.R  ${PGS_file}.nopred  ${predictor}.snpRes
+```
+
+# profile PGS
+
+```{bash, eval = F}
+plink \
+   --bfile  $input \
+   --score  $predictor  2 5 8  header sum    \
+   --out ${outdir}/${cohort}_${trait}_SBayesRC
+
+```
+
 # Clumping
 
 Clumping plus threshold method could be used as a baseline model to compare the prediction accuracy.
