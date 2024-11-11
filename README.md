@@ -49,7 +49,7 @@ for example, if the raw gwas file has a header like this:
 you can put each element of the header name into the script per flag:
 
 ```{bash, eval = F}
-cmd1="Rscript  ${exedir}/cojo_format_v7.R  \
+cmd1="Rscript  ${exedir}/cojo_format_v8.R  \
   --file  ${trait}/${gwas_file}  \
   --out  ${trait}/${gwas_file}.ma   \
   --SNP  MarkerName  \
@@ -59,7 +59,7 @@ cmd1="Rscript  ${exedir}/cojo_format_v7.R  \
   --pvalue P  \
   --beta  LogOR  \
   --se  StdErrLogOR   \
-  --samplesize  500199   "
+  --samplesize  500199,46785   "
 
 job_name="format_"${trait}
 formatqsub=`qsubshcom  "$cmd1" 1 50G  $job_name  2:00:00  " "     `
