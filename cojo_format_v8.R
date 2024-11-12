@@ -73,7 +73,7 @@ cat("column name used for sample size or the overal sample size in this file is 
 
 # read in the data
 
-gwas = data.frame(fread(file.name))
+gwas = data.frame(fread(file.name, check.names = FALSE))
 ref.freq = data.frame(fread(freq.file))
 
 
