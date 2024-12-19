@@ -111,7 +111,7 @@ sbrc_gctb_sub=`qsubshcom "./gctb_2.5.2_Linux/gctb   \
 At last we compare the marginal effect size with the effect size from SBayesRC with a simple plot. 
 
 ```{bash, eval = F}
-plotcmd=" Rscript  ${exedir}/effect_size_plot_for_GCTB_output.R    $trait   ${gwas_file}_imp.ma.imputed.ma    ${trait}/SBayesRC/GCTB_v2.5.2/${gwas_file}_imp.ma.imputed_sbrc_gctb   "
+plotcmd=" Rscript  ${exedir}/effect_size_plot_for_GCTB_output.R    $trait   ${gwas_file}_imp.ma.imputed.ma    ${trait}/SBayesRC/GCTB_v2.5.2/${gwas_file}_imp.ma.imputed_sbrc_gctb.snpRes   "
 jobname="effect_plot_"${trait}
 plotsub=`qsubshcom "$plotcmd"  1  50G  $jobname  1:00:00  " -wait=$sbrc_gctb_sub  " `
 ```
