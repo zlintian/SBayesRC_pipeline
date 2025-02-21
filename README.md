@@ -120,6 +120,20 @@ As an example:
 
 <img src="Anorexia_01_pgcAN2.2019-07.modified.vcf.tsv_sbrc.txt_compare_marginal_effect_vs_SBayesRC_20231103_10_18.png" width="50%" height="50%" />
 
+# Custermized LD matrix
+
+If the provided LD matrix don't work for you, it's easy to generate one by yourself. 
+
+
+```{bash, eval = F}
+bdata=ukbEURu_imp_ldref_10m
+ldm=UKB_Par_10M
+chunk=/QRISdata/Q6913/Pipeline/ref4cM_v37.pos
+
+step1sub=`qsubshcom "gctb --bfile $bdata --make-block-ldm --block {TASK_ID} --block-info $chunk --out $ldm "  1 200G "block" 36:00:00 " -array=1-591  " `
+step2sub=`qsubshcom "gctb --ldm  $ldm --merge-block-ldm-info --out  $ldm "  1 200G "merge" 1:00:00 " -wait=$step1sub"   `
+step3sub=`qsubshcom "gctb --ldm $ldm --make-ldm-eigen --block {TASK_ID} --out $ldm "  1 200G "eigen" 56:00:00 " -wait=$step2sub  -array=1-591"   `
+```
 
 # Genetic Variance
 
